@@ -43,11 +43,5 @@ func ParseRulesFromPrometheus(url string) error  {
 	body,_ := ioutil.ReadAll(resp.Body)
 	fmt.Println(string(body))
 
-
-
-
-
-
-
 	return  nil
 }
