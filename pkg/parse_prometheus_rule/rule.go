@@ -12,16 +12,15 @@ type RuleGroups struct {
 
 type RuleGroup struct {
 	Name     string `yaml:"name" json:"name"`
-	Interval int    `yaml:"interval,omitempty" json:"interval"`
+	Interval int    `yaml:"interval" json:"interval"`
 	Rules    []Rule `yaml:"rules" json:"rules"`
 }
 
 type Rule struct {
-	ID          int               `yaml:"-" json:"id"`
-	Record      string            `yaml:"record,omitempty" json:"record,omitempty"`
-	Alert       string            `yaml:"alert,omitempty" json:"name"`
+	Type        string            `yaml:"type" json:"type"`
+	Alert       string            `yaml:"name,omitempty" json:"name"`
 	Expr        string            `yaml:"expr" json:"query"`
-	For         int               `yaml:"for,omitempty" json:"duration"`
+	For         int               `yaml:"for,omitempty" json:"duration,omitempty"`
 	GroupName   string            `yaml:"-" json:"group_name"`
 	Labels      map[string]string `yaml:"labels,omitempty" json:"labels"`
 	Annotations map[string]string `yaml:"annotations,omitempty" json:"annotations"`
@@ -30,3 +29,6 @@ type Rule struct {
 type apiFuncResult struct {
 	Data RuleGroups
 }
+
+
+

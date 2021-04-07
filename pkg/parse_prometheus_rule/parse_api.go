@@ -1,47 +1,43 @@
 /*
 @Description:
 @Author: fei.wang
-@Date: 2021/03/1
+@Date: 2021/03/29
 */
-
 package parse_prometheus_rule
 
 import (
-	//"encoding/json"
-	"fmt"
-	"io/ioutil"
+	"encoding/json"
+	//"io/ioutil"
+	"log"
 	"net/http"
 )
 
 func ParseRulesFromPrometheus(url string) error  {
-	//req ,err := http.NewRequest("GET",url,nil)
-	//if err !=nil{
-	//	log.Fatal(err)
-	//}
-	//
-	//resp, err := http.DefaultClient.Do(req)
-	//if err !=nil{
-	//	log.Fatal(err)
-	//}
+	req ,err := http.NewRequest("GET",url,nil)
+	if err !=nil{
+		log.Fatal(err)
+	}
 
-	//fmt.Printf("%v\n",resp.Body)
+	resp, err := http.DefaultClient.Do(req)
+	if err !=nil {
+		log.Fatal(err)
+	}
 
-	//var prp apiFuncResult
+	var prp apiFuncResult
+	json.NewDecoder(resp.Body).Decode(&prp)
 
-	//fmt.Println(json.NewDecoder(resp.Body).Decode(&prp))
-	//fmt.Println(json.NewDecoder(resp.Body).Decode())
-
-
-	resp, err := http.Get(url)
-
+	// save file to yaml.
+	//fmt.Println(prp)
+	err = GenPromRuleConfig(&prp)
 	if err != nil{
 		return err
 	}
 
-	fmt.Println(resp.Header)
-	//fmt.Println(json.NewDecoder(resp.Body).Decode(&prp))
-	body,_ := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(body))
-
+	//fmt.Println(prp.Data)
+	// save prometheus config to mysql.
+	err = Rule2DB(&prp)
+	if err != nil{
+		return err
+	}
 	return  nil
 }

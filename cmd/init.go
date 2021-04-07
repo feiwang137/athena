@@ -16,12 +16,11 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
 	"log"
 	"os"
 
-	"github.com/spf13/cobra"
 	"github.com/feiwang137/athena/pkg/agent"
+	"github.com/spf13/cobra"
 )
 
 // initCmd represents the init command
@@ -35,8 +34,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("init called")
-		fmt.Println("promehtues url:",prometheusUrl)
+		log.Printf("init called, promehtues url:%v\n",prometheusUrl)
 		err := agent.InitAthena(prometheusUrl)
 		if err != nil{
 			log.Println(err)
@@ -51,7 +49,6 @@ func init() {
 	rootCmd.AddCommand(initCmd)
 
 	// Here you will define your flags and configuration settings.
-
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
@@ -59,5 +56,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	initCmd.Flags().StringVar(&prometheusUrl,"prometheus_url","http://127.0.0.1"," prometheus url")
+	initCmd.Flags().StringVar(&prometheusUrl,"prometheus_url","http://127.0.0.1:9090"," prometheus url")
 }
