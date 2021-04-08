@@ -32,8 +32,8 @@ func Rule2DB(prp *apiFuncResult) error {
 				RuleName:    r.Alert,
 				Type:        r.Type,
 				Query:       r.Expr,
-				For:         r.For,
-				Duration:    gr.Interval,
+				Interval:    gr.Interval,
+				Duration:    r.For,
 				Labels:      structToString(r.Labels),
 				Annotations: structToString(r.Annotations),
 			}
