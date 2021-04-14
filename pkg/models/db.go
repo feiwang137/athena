@@ -7,6 +7,7 @@
 package models
 
 import (
+	"fmt"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"log"
@@ -19,14 +20,14 @@ type MyRules []MyRule
 
 type MyRule struct {
 	gorm.Model
-	GroupName   string
-	RuleName    string
-	Type        string
-	Query       string
-	Interval    int `gorm:"default:15"`
-	Duration    int `gorm:"default:0"`
-	Labels      string
-	Annotations string
+	GroupName   string `json:"group_name"`
+	RuleName    string `json:"rule_name"`
+	Type        string `json:"type"`
+	Query       string `json:"query"`
+	Interval    int `json:"interval",gorm:"default:15"`
+	Duration    int `json:"duration",gorm:"default:0"`
+	Labels      string `json:"labels"`
+	Annotations string `json:"annotations"`
 }
 
 var db *gorm.DB
@@ -49,6 +50,7 @@ func stepDB() {
 	if autoMigrate {
 		d.AutoMigrate(&MyRule{})
 	}
+
 	db = d
 }
 
@@ -57,31 +59,38 @@ func (rl *MyRules) Create() error {
 	return db.Create(&rl).Error
 }
 
+func Create(rl interface{}) error {
+	//db.Table("my_rules")
+	//return db.Create(&rl).Error
+	fmt.Println(rl)
+	return 	db.Model(&MyRule{}).Create(&rl).Error
+}
+
 // 单条记录删除
-func Delete(id uint) (int64, error) {
+func Delete(id uint) (error) {
 	r := db.Unscoped().Delete(&MyRule{}, id)
-	return r.RowsAffected, r.Error
+	return r.Error
 }
 
 // 单条记录更新
-func Update(id uint, myRule MyRule) error {
+func Update(id uint, myRule interface{}) error {
 	db.Model(&MyRule{}).Where(id).Updates(myRule)
 	return nil
 }
 
 // 模糊查询
 func FRead(key string) (MyRules, error) {
-	var myRule []MyRule
+	var myRules []MyRule
 	fuzzyStr := "%" + key + "%"
-	db.Where("rule_name LIKE ?", fuzzyStr).Or("group_name LIKE ?", fuzzyStr).Find(&myRule)
-	return myRule, nil
+	db.Where("rule_name LIKE ?", fuzzyStr).Or("group_name LIKE ?", fuzzyStr).Find(&myRules)
+	return myRules, nil
 }
 
 // 获取全部rule
 func Read() (MyRules, error) {
-	var myRule []MyRule
-	db.Find(&myRule)
-	return myRule, nil
+	var myRules []MyRule
+	db.Find(&myRules)
+	return myRules, nil
 }
 
 func init() {
