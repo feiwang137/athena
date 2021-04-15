@@ -26,18 +26,20 @@ func ParseRulesFromPrometheus(url string) error  {
 	var prp apiFuncResult
 	json.NewDecoder(resp.Body).Decode(&prp)
 
-	// save file to yaml.
-	//fmt.Println(prp)
-	err = GenPromRuleConfig(&prp)
-	if err != nil{
-		return err
-	}
-
 	//fmt.Println(prp.Data)
 	// save prometheus config to mysql.
 	err = Rule2DB(&prp)
 	if err != nil{
 		return err
 	}
+
+	// save file to yaml.
+	//fmt.Println(prp)
+	err = GenPromRuleConfig()
+	if err != nil{
+		return err
+	}
+
+
 	return  nil
 }

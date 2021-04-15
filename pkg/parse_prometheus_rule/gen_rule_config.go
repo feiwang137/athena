@@ -3,101 +3,119 @@
 @Author: fei.wang
 @Date: 2020/12/09
 */
-
 package parse_prometheus_rule
 
+
 import (
+	"encoding/json"
+	"github.com/feiwang137/athena/pkg/models"
 	"log"
-	//"github.com/google/martian/log"
 	"io/ioutil"
 	"gopkg.in/yaml.v2"
 	"strconv"
 )
 
-type NRuleGroups struct {
-	Groups []NGroup `yaml:"groups"`
+type PromRules struct {
+Groups []Group `yaml:"groups"`
 }
 
-type NGroup struct {
-	Name      string         `yaml:"name"`
-	Interval  string         `yaml:"interval"`
-	Rules     []interface{}        `yaml:"rules"`
+type Group struct {
+	Name     string        `yaml:"name"`
+	Interval string        `yaml:"interval"`
+	Rules    []interface{} `yaml:"rules"`
 }
 
 // NewAlertRule
-type NARule struct {
-	Name      	string					`yaml:"alert,omitempty"`
-	Expr        string         			`yaml:"expr"`
-	For         string         			`yaml:"for,omitempty"`
-	Labels      map[string]string		`yaml:"labels"`
-	Annotations map[string]string		`yaml:"annotations"`
+type AlertRule struct {
+	Name        string            `yaml:"alert"`
+	Expr        string            `yaml:"expr"`
+	For         string            `yaml:"for"`
+	Labels      map[string]string `yaml:"labels"`
+	Annotations map[string]string `yaml:"annotations"`
 }
 
 // NewRecordRule
-type NRRule struct {
-	Name      	string					`yaml:"record,omitempty"`
-	Expr        string         			`yaml:"expr"`
-	Labels      map[string]string		`yaml:"labels"`
-	Annotations map[string]string		`yaml:"annotations,omitempty"`
+type RecordRule struct {
+	Name   string            `yaml:"record,omitempty"`
+	Expr   string            `yaml:"expr"`
+	Labels map[string]string `yaml:"labels"`
 }
 
-func int2str(time int) (string){
+func string2Struct(convertStr string) map[string]string {
+	bytes := []byte(convertStr)
+	var key map[string]string
+	json.Unmarshal(bytes, &key)
+	return key
+}
+
+func int2str(time int) string {
 	return strconv.Itoa(time) + "s"
 }
 
-func GenPromRuleConfig(pc *apiFuncResult) error{
-	rule_data := pc.Data
-	rule_groups := rule_data.Groups
-	NG := make([]NGroup,len(rule_groups),len(rule_groups))
+func GenPromRuleConfig() error {
 
-	for i, rule_group := range rule_groups{
+	var PromRulesConfig PromRules
 
-		newGroup := NGroup{
-			Name: rule_group.Name,
-			Interval: int2str(rule_group.Interval),
-		}
+	data, err := models.SpecifyFiled("group_name")
 
-		for _, rule := range rule_group.Rules{
-
-			var new_alert_rule NARule
-			var new_record_rule NRRule
-
-			if rule.Type == "alerting"{
-				new_alert_rule = NARule{
-					Name: rule.Alert,
-					Expr: rule.Expr,
-					For: int2str(rule.For),
-					Labels: rule.Labels,
-					Annotations: rule.Annotations,
-				}
-				newGroup.Rules = append(newGroup.Rules, new_alert_rule)
-
-			} else if rule.Type == "recording" {
-				new_record_rule = NRRule{
-					Name: rule.Alert,
-					Expr: rule.Expr,
-					Labels: rule.Labels,
-					Annotations: rule.Annotations,
-				}
-				newGroup.Rules = append(newGroup.Rules, new_record_rule)
-			}
-		}
-		NG[i] = newGroup
-
-	}
-
-	NGS := NRuleGroups{Groups: NG}
-	data, err := yaml.Marshal(&NGS)
-	if err != err{
+	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile("rules.yaml",data,0644)
+	for _, group := range data {
+		var ruleGroup Group
+
+		ruleGroup.Interval = int2str(group.Interval)
+		ruleGroup.Name = group.GroupName
+		//按照group name查询rule
+		data, err := models.FindByGroupName(group.GroupName)
+		if err != nil {
+			log.Println(err)
+		}
+
+		for _, rule := range data {
+			if rule.Type == "alerting" {
+				alertRule := AlertRule{
+					Name:        rule.RuleName,
+					Expr:        rule.Query,
+					For:         int2str(rule.Duration),
+					Labels:      string2Struct(rule.Labels),
+					Annotations: string2Struct(rule.Annotations),
+				}
+				ruleGroup.Rules = append(ruleGroup.Rules, alertRule)
+
+			} else if rule.Type == "recording" {
+				recordRule := RecordRule{
+					Name:   rule.RuleName,
+					Expr:   rule.Query,
+					Labels: string2Struct(rule.Labels),
+				}
+				ruleGroup.Rules = append(ruleGroup.Rules, recordRule)
+			}
+		}
+		PromRulesConfig.Groups = append(PromRulesConfig.Groups, ruleGroup)
+	}
+
+	err = CreateYamlFile(PromRulesConfig)
+
 	if err != nil{
 		log.Printf("save rule to yaml fail, error:%v \n",err)
 		return err
 	}
-	log.Printf("save prometheus config success, rules.yaml\n")
 	return nil
+}
 
+func CreateYamlFile(rules PromRules) error {
+	data, err := yaml.Marshal(&rules)
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile("rules.yaml", data, 0644)
+	if err != nil {
+		log.Printf("save rule to yaml fail, error:%v \n", err)
+		return err
+	}
+
+	return nil
 }

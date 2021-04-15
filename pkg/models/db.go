@@ -93,6 +93,19 @@ func Read() (MyRules, error) {
 	return myRules, nil
 }
 
+func FindByGroupName(groupName string)(MyRules, error){
+	var myRules []MyRule
+	db.Where("group_name = ?",groupName).Find(&myRules)
+	return myRules, nil
+}
+
+func SpecifyFiled(query string) (MyRules, error){
+	var myRules []MyRule
+	db.Select(query,"interval").Group(query).Find(&myRules)
+	return myRules,nil
+}
+
+
 func init() {
 	stepDB()
 }
