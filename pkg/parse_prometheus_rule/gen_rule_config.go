@@ -5,18 +5,17 @@
 */
 package parse_prometheus_rule
 
-
 import (
 	"encoding/json"
 	"github.com/feiwang137/athena/pkg/models"
-	"log"
-	"io/ioutil"
 	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"log"
 	"strconv"
 )
 
 type PromRules struct {
-Groups []Group `yaml:"groups"`
+	Groups []Group `yaml:"groups"`
 }
 
 type Group struct {
@@ -41,14 +40,14 @@ type RecordRule struct {
 	Labels map[string]string `yaml:"labels"`
 }
 
-func string2Struct(convertStr string) map[string]string {
+func Str2Struct(convertStr string) map[string]string {
 	bytes := []byte(convertStr)
 	var key map[string]string
 	json.Unmarshal(bytes, &key)
 	return key
 }
 
-func int2str(time int) string {
+func Int2str(time int) string {
 	return strconv.Itoa(time) + "s"
 }
 
@@ -65,7 +64,7 @@ func GenPromRuleConfig() error {
 	for _, group := range data {
 		var ruleGroup Group
 
-		ruleGroup.Interval = int2str(group.Interval)
+		ruleGroup.Interval = Int2str(group.Interval)
 		ruleGroup.Name = group.GroupName
 		//按照group name查询rule
 		data, err := models.FindByGroupName(group.GroupName)
@@ -78,9 +77,9 @@ func GenPromRuleConfig() error {
 				alertRule := AlertRule{
 					Name:        rule.RuleName,
 					Expr:        rule.Query,
-					For:         int2str(rule.Duration),
-					Labels:      string2Struct(rule.Labels),
-					Annotations: string2Struct(rule.Annotations),
+					For:         Int2str(rule.Duration),
+					Labels:      Str2Struct(rule.Labels),
+					Annotations: Str2Struct(rule.Annotations),
 				}
 				ruleGroup.Rules = append(ruleGroup.Rules, alertRule)
 
@@ -88,7 +87,7 @@ func GenPromRuleConfig() error {
 				recordRule := RecordRule{
 					Name:   rule.RuleName,
 					Expr:   rule.Query,
-					Labels: string2Struct(rule.Labels),
+					Labels: Str2Struct(rule.Labels),
 				}
 				ruleGroup.Rules = append(ruleGroup.Rules, recordRule)
 			}
@@ -96,26 +95,29 @@ func GenPromRuleConfig() error {
 		PromRulesConfig.Groups = append(PromRulesConfig.Groups, ruleGroup)
 	}
 
-	err = CreateYamlFile(PromRulesConfig)
+	err = CreateYamlFile(PromRulesConfig,"/Users/feiwang/prom-data/")
 
-	if err != nil{
-		log.Printf("save rule to yaml fail, error:%v \n",err)
+	if err != nil {
+		log.Printf("save rule to yaml fail, error:%v \n", err)
 		return err
 	}
 	return nil
 }
 
-func CreateYamlFile(rules PromRules) error {
+func CreateYamlFile(rules PromRules,rulePath string) error {
 	data, err := yaml.Marshal(&rules)
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile("rules.yaml", data, 0644)
+	ruleFilePath := rulePath
+	err = ioutil.WriteFile(ruleFilePath, data, 0644)
 	if err != nil {
 		log.Printf("save rule to yaml fail, error:%v \n", err)
 		return err
 	}
+
+	log.Printf("Generate %v success.",rulePath)
 
 	return nil
 }
