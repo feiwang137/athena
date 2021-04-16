@@ -1,4 +1,4 @@
 #!/bin/bash
 set -x
-rm -f athena
+rm -f athena*
 go build -o bin/athena

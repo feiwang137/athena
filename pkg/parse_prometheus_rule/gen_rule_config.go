@@ -95,7 +95,7 @@ func GenPromRuleConfig() error {
 		PromRulesConfig.Groups = append(PromRulesConfig.Groups, ruleGroup)
 	}
 
-	err = CreateYamlFile(PromRulesConfig,"/Users/feiwang/prom-data/")
+	err = CreateYamlFile(PromRulesConfig,"/Users/feiwang/prom-data/rules.yml")
 
 	if err != nil {
 		log.Printf("save rule to yaml fail, error:%v \n", err)

@@ -12,8 +12,6 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"os"
-	//"log"
-	//"os"
 )
 
 type MyRules []MyRule
@@ -24,8 +22,8 @@ type MyRule struct {
 	RuleName    string `json:"rule_name"`
 	Type        string `json:"type"`
 	Query       string `json:"query"`
-	Interval    int `json:"interval",gorm:"default:15"`
-	Duration    int `json:"duration",gorm:"default:0"`
+	Interval    int    `json:"interval",gorm:"default:15"`
+	Duration    int    `json:"duration",gorm:"default:0"`
 	Labels      string `json:"labels"`
 	Annotations string `json:"annotations"`
 }
@@ -35,7 +33,7 @@ var db *gorm.DB
 func stepDB() {
 
 	autoMigrate := false
-	if _, err := os.Stat("athena.db"); err != nil {
+	if _, err := os.Stat("/Users/feiwang/go/src/athena/athena.db"); err != nil {
 		autoMigrate = true
 		log.Println("athena.db doesn't exits, create it.")
 	} else {
@@ -63,11 +61,11 @@ func Create(rl interface{}) error {
 	//db.Table("my_rules")
 	//return db.Create(&rl).Error
 	fmt.Println(rl)
-	return 	db.Model(&MyRule{}).Create(&rl).Error
+	return db.Model(&MyRule{}).Create(&rl).Error
 }
 
 // 单条记录删除
-func Delete(id uint) (error) {
+func Delete(id uint) error {
 	r := db.Unscoped().Delete(&MyRule{}, id)
 	return r.Error
 }
@@ -93,18 +91,17 @@ func Read() (MyRules, error) {
 	return myRules, nil
 }
 
-func FindByGroupName(groupName string)(MyRules, error){
+func FindByGroupName(groupName string) (MyRules, error) {
 	var myRules []MyRule
-	db.Where("group_name = ?",groupName).Find(&myRules)
+	db.Where("group_name = ?", groupName).Find(&myRules)
 	return myRules, nil
 }
 
-func SpecifyFiled(query string) (MyRules, error){
+func SpecifyFiled(query string) (MyRules, error) {
 	var myRules []MyRule
-	db.Select(query,"interval").Group(query).Find(&myRules)
-	return myRules,nil
+	db.Select(query, "interval").Group(query).Find(&myRules)
+	return myRules, nil
 }
-
 
 func init() {
 	stepDB()

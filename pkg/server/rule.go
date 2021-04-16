@@ -66,6 +66,12 @@ func UpdateRule(c *gin.Context){
 	if err !=nil{
 		panic(err)
 	}
+
+	err = GeneratePromRuleFileAndReloadProm()
+	if err !=nil{
+		log.Fatalln("Error: ", err)
+	}
+
 	c.JSON(200, gin.H{
 		"state":"ok",
 	})
@@ -82,6 +88,12 @@ func DeleteRule(c *gin.Context){
 	if err != nil{
 		panic(err)
 	}
+
+	err = GeneratePromRuleFileAndReloadProm()
+	if err !=nil{
+		log.Fatalln("Error: ", err)
+	}
+
 	c.JSON(200, gin.H{
 		"state":"ok",
 	})
@@ -106,6 +118,22 @@ func CreateRules(c *gin.Context){
 		return
 	}
 
+	log.Println(MyRules)
+
+	//for _, rule := range MyRules{
+	//	err := CheckRuleFilesValid(rule)
+	//	if err != nil{
+	//		log.Println("ERROR: ", err)
+	//		// 返回结果，告知错误原因！
+	//		c.JSON(200, gin.H{
+	//			"state":"error",
+	//			"reason": err,
+	//		})
+	//
+	//		return
+	//	}
+	//
+	//}
 
 	// ToDo: to check rules and generate rules.yaml
 
@@ -114,7 +142,28 @@ func CreateRules(c *gin.Context){
 		panic(err)
 	}
 
+	err = GeneratePromRuleFileAndReloadProm()
+	if err !=nil{
+		log.Fatalln("Error: ", err)
+	}
+
 	c.JSON(200, gin.H{
 		"state":"ok",
 	})
+}
+
+func GeneratePromRuleFileAndReloadProm() error{
+	err := parse_prometheus_rule.GenPromRuleConfig()
+	if  err != nil{
+		log.Fatalln("Error generate rule yaml file.",err)
+		return err
+	}
+
+	err = ReloadPrometheusServer()
+	if  err != nil{
+		log.Fatalln("Error reload prometheus sever",err)
+		return err
+	}
+	return nil
+
 }

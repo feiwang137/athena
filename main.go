@@ -18,7 +18,6 @@ package main
 
 import "github.com/feiwang137/athena/cmd"
 
-
 func main() {
 	cmd.Execute()
 }

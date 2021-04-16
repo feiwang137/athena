@@ -25,7 +25,9 @@ const (
 	createRule = "/create_rule"
 )
 
-func PromServer(listenAddress *string, rulePath *string, promtoolPath *string){
+func PromServer(){
+
+	listenAddress := "0.0.0.0:8080"
 	//log.Printf("%v\n%v\n%v\n", *listenAddress, *rulePath, *promtoolPath)
 
 	router := gin.Default()
@@ -38,7 +40,7 @@ func PromServer(listenAddress *string, rulePath *string, promtoolPath *string){
 		v1.POST(createRule, CreateRules)
 	}
 
-	router.Run(*listenAddress)
+	router.Run(listenAddress)
 
 }
 
