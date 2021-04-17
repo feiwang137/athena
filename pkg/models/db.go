@@ -29,6 +29,19 @@ type MyRule struct {
 	Annotations string `json:"annotations"`
 }
 
+
+type TempMyRules []TempMyRule
+type TempMyRule struct {
+	gorm.Model
+	GroupName   string `json:"group_name"`
+	RuleName    string `json:"rule_name"`
+	Type        string `json:"type"`
+	Query       string `json:"query"`
+	Interval    int    `json:"interval",gorm:"default:15"`
+	Duration    int    `json:"duration",gorm:"default:0"`
+	Labels      map[string]string `json:"labels"`
+	Annotations map[string]string `json:"annotations"`
+}
 var db *gorm.DB
 
 func stepDB() {
@@ -61,6 +74,7 @@ func (rl *MyRules) Create() error {
 	stepDB()
 	return db.Create(&rl).Error
 }
+
 
 func Create(rl interface{}) error {
 	stepDB()

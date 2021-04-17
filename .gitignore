@@ -19,3 +19,4 @@
 *.yaml
 *.db
 bin/
+start.sh

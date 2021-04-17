@@ -7,6 +7,7 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/feiwang137/athena/pkg/models"
 	"github.com/feiwang137/athena/pkg/parse_prometheus_rule"
 	"github.com/gin-gonic/gin"
@@ -46,7 +47,6 @@ func QueryRules(c *gin.Context){
 // 更新rule，传入一个json
 func UpdateRule(c *gin.Context){
 	idStr := c.Param("id")
-	log.Println("id is: ",idStr)
 	id, _ := strconv.Atoi(idStr)
 
 	Rule := make(map[string]interface{})
@@ -60,13 +60,14 @@ func UpdateRule(c *gin.Context){
 		Rule["annotations"] = parse_prometheus_rule.StructToString(Rule["annotations"])
 	}
 
+
 	// ToDo: to check rules and generate rules.yaml
 
 	err := models.Update(uint(id), &Rule)
 	if err !=nil{
 		panic(err)
 	}
-
+	//
 	err = GeneratePromRuleFileAndReloadProm()
 	if err !=nil{
 		log.Fatalln("Error: ", err)
@@ -100,27 +101,42 @@ func DeleteRule(c *gin.Context){
 }
 
 func CreateRules(c *gin.Context){
-	Rules := make([]map[string]interface{},0)
-	c.BindJSON(&Rules)
+	JsonTempRules := make([]map[string]interface{},0)
+	c.BindJSON(&JsonTempRules)
 
-	// json > json string > struct
 
-	data, err := json.MarshalIndent(Rules,""," ")
+	fmt.Printf("labels, T: %T, V: %v \n", JsonTempRules[0]["labels"],JsonTempRules[0]["labels"],)
+
+	data, err := json.MarshalIndent(JsonTempRules,""," ")
 	if err != nil{
 		log.Println("ERROR: ",err)
 		return
 	}
 
-	var MyRules models.MyRules
-	err = json.Unmarshal(data, &MyRules)
+	var TempRules models.TempMyRules
+	err = json.Unmarshal(data, &TempRules)
 	if err != nil{
 		log.Println("ERROR: ",err)
 		return
 	}
 
-	log.Println(MyRules)
+	var rules models.MyRules
+	for _, temp_rule := range TempRules{
+		rule := models.MyRule{
+			GroupName: temp_rule.GroupName,
+			RuleName: temp_rule.RuleName,
+			Type: temp_rule.Type,
+			Query: temp_rule.Query,
+			Interval: temp_rule.Interval,
+			Duration: temp_rule.Duration,
+			Labels: parse_prometheus_rule.StructToString(temp_rule.Labels),
+			Annotations: parse_prometheus_rule.StructToString(temp_rule.Annotations),
+		}
+		rules = append(rules, rule)
+	}
 
-	//for _, rule := range MyRules{
+
+	//for _, rule := range TempRules{
 	//	err := CheckRuleFilesValid(rule)
 	//	if err != nil{
 	//		log.Println("ERROR: ", err)
@@ -137,7 +153,7 @@ func CreateRules(c *gin.Context){
 
 	// ToDo: to check rules and generate rules.yaml
 
-	err = MyRules.Create()
+	err = rules.Create()
 	if err != nil{
 		panic(err)
 	}

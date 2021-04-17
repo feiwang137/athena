@@ -22,7 +22,7 @@ func ReloadPrometheusServer() error{
 	}
 	promServer := serverConfig.PrometheusServer
 
-	url := "http://" + promServer + "/-/reload"
+	url := promServer + "/-/reload"
 	client := &http.Client{}
 	req ,err := http.NewRequest("POST",url,nil)
 	if err != nil {
