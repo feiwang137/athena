@@ -7,11 +7,12 @@
 package models
 
 import (
-	"fmt"
+	//"fmt"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"log"
 	"os"
+	"github.com/feiwang137/athena/pkg/utils"
 )
 
 type MyRules []MyRule
@@ -33,14 +34,17 @@ var db *gorm.DB
 func stepDB() {
 
 	autoMigrate := false
-	if _, err := os.Stat("/Users/feiwang/go/src/athena/athena.db"); err != nil {
-		autoMigrate = true
-		log.Println("athena.db doesn't exits, create it.")
-	} else {
-		log.Println("athena.db is exists, loading it.")
+
+	serverConfig, err := utils.LoadServerConfig()
+	if err !=nil{
+		panic(err)
 	}
 
-	d, err := gorm.Open(sqlite.Open("athena.db"), &gorm.Config{})
+	if _, err := os.Stat(serverConfig.SqliteDBPath); err != nil {
+		autoMigrate = true
+		log.Println("first run, will to init DB.")
+	}
+	d, err := gorm.Open(sqlite.Open(serverConfig.SqliteDBPath), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database.")
 	}
@@ -54,30 +58,34 @@ func stepDB() {
 
 // 支持批量添加和单独记录的添加
 func (rl *MyRules) Create() error {
+	stepDB()
 	return db.Create(&rl).Error
 }
 
 func Create(rl interface{}) error {
+	stepDB()
 	//db.Table("my_rules")
 	//return db.Create(&rl).Error
-	fmt.Println(rl)
 	return db.Model(&MyRule{}).Create(&rl).Error
 }
 
 // 单条记录删除
 func Delete(id uint) error {
+	stepDB()
 	r := db.Unscoped().Delete(&MyRule{}, id)
 	return r.Error
 }
 
 // 单条记录更新
 func Update(id uint, myRule interface{}) error {
+	stepDB()
 	db.Model(&MyRule{}).Where(id).Updates(myRule)
 	return nil
 }
 
 // 模糊查询
 func FRead(key string) (MyRules, error) {
+	stepDB()
 	var myRules []MyRule
 	fuzzyStr := "%" + key + "%"
 	db.Where("rule_name LIKE ?", fuzzyStr).Or("group_name LIKE ?", fuzzyStr).Find(&myRules)
@@ -86,23 +94,23 @@ func FRead(key string) (MyRules, error) {
 
 // 获取全部rule
 func Read() (MyRules, error) {
+	stepDB()
 	var myRules []MyRule
 	db.Find(&myRules)
 	return myRules, nil
 }
 
 func FindByGroupName(groupName string) (MyRules, error) {
+	stepDB()
 	var myRules []MyRule
 	db.Where("group_name = ?", groupName).Find(&myRules)
 	return myRules, nil
 }
 
 func SpecifyFiled(query string) (MyRules, error) {
+	stepDB()
 	var myRules []MyRule
 	db.Select(query, "interval").Group(query).Find(&myRules)
 	return myRules, nil
 }
 
-func init() {
-	stepDB()
-}

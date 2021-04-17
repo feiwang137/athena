@@ -16,11 +16,11 @@ limitations under the License.
 package cmd
 
 import (
+	"github.com/feiwang137/athena/pkg/agent"
+	"github.com/feiwang137/athena/pkg/utils"
+	"github.com/spf13/cobra"
 	"log"
 	"os"
-	"github.com/feiwang137/athena/pkg/agent"
-	"github.com/spf13/cobra"
-	"github.com/feiwang137/athena/pkg/utils"
 )
 
 // initCmd represents the init command
@@ -34,17 +34,16 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Printf("init called, promehtues url:%v and init db\n",prometheusServer)
-		err := agent.InitAthena(prometheusServer)
-		if err != nil{
-			log.Println(err)
-			os.Exit(1)
-		}
-		err = utils.GenServerConfig(prometheusServer,sqliteDbPath,ruleConfigPath,listenAddress,promToolPath,athenaConfigPath)
+		err := utils.GenServerConfig(prometheusServer,sqliteDbPath,ruleConfigPath,listenAddress,promToolPath, cfgFile )
 		if err !=nil{
 			log.Fatalln("generate athena.yaml faild.")
 		}
 
+		err = agent.InitAthena(prometheusServer)
+		if err != nil{
+			log.Println(err)
+			os.Exit(1)
+		}
 	},
 }
 
@@ -54,12 +53,8 @@ var (
 	ruleConfigPath string
 	listenAddress  string
 	promToolPath   string
-	athenaConfigPath   string
+	//athenaConfigPath   string
 )
-
-
-
-
 
 func init() {
 	rootCmd.AddCommand(initCmd)
@@ -72,11 +67,12 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
 	initCmd.Flags().StringVar(&prometheusServer,"prometheus_url","http://127.0.0.1:9090"," prometheus url")
 	initCmd.Flags().StringVar(&sqliteDbPath,"sqliteDBPath","/Users/feiwang/prom-data/athena.db","sqliteDB Path")
-	serverCmd.Flags().StringVar(&ruleConfigPath, "rule_config_path", "/Users/feiwang/prom-data/rules.yml", "rule config path.")
-	serverCmd.Flags().StringVar(&listenAddress, "listen_address", "0.0.0.0:8080", "listen address and ports.")
-	serverCmd.Flags().StringVar(&promToolPath, "promtool_path", "/usr/local/bin/promtool", "promtool path.")
-	serverCmd.Flags().StringVar(&athenaConfigPath, "athena_config_path", "/Users/feiwang/prom-data/athena.yml", "athena config path.")
+	initCmd.Flags().StringVar(&ruleConfigPath, "rule_config_path", "/Users/feiwang/prom-data/rules.yml", "rule config path.")
+	initCmd.Flags().StringVar(&listenAddress, "listen_address", "0.0.0.0:8080", "listen address and ports.")
+	initCmd.Flags().StringVar(&promToolPath, "promtool_path", "/usr/local/bin/promtool", "promtool path.")
+	//initCmd.Flags().StringVar(&athenaConfigPath, "athena_config_path", "/Users/feiwang/prom-data/athena.yml", "athena config path.")
 
 }

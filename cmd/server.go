@@ -16,9 +16,11 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
+	//"fmt"
+	"github.com/feiwang137/athena/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/feiwang137/athena/pkg/server"
+	//"log"
 )
 
 // serverCmd represents the server command
@@ -32,17 +34,16 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf(" listenaddress: %v\n ruleconfigPath: %v\n promtoolPath: %v\n", listenAddress, ruleConfigPath, promToolPath)
+
+		utils.AthenaConfigPath = &cfgFile
 		server.PromServer()
 	},
 }
 
 
-var (
-	//listenAddress  string
-	//promToolPath   string
-	serverConfigPath string
-)
+//var (
+//	athenaConfigPath string
+//)
 
 func init() {
 	rootCmd.AddCommand(serverCmd)
@@ -55,9 +56,8 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// serverCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	//serverCmd.Flags().StringVar(&listenAddress, "listen_address", "0.0.0.0:8080", "listen address and ports.")
-	//serverCmd.Flags().StringVar(&promToolPath, "promtool_path", "/usr/local/bin/", "promtool path.")
+	//serverCmd.Flags().StringVar(&athenaConfigPath, "athena_config_path", "/Users/feiwang/prom-data/athena.yml", "athena config path.")
 
-	// 拿到配置文件后，需要一个配置文件解析模块，init() 指针方式
-	serverCmd.Flags().StringVar(&serverConfigPath, "serverConfigPath", "/Users/feiwang/prom-data/athena.yml", "server Config Path")
+
+
 }

@@ -14,7 +14,10 @@ package server
 
 import (
 	//"log"
+	"github.com/feiwang137/athena/pkg/utils"
 	"github.com/gin-gonic/gin"
+	"log"
+
 	//"net/http"
 )
 
@@ -26,12 +29,14 @@ const (
 )
 
 func PromServer(){
+	serverConfig, err := utils.LoadServerConfig()
+	if err != nil{
+		log.Println("load Athena server listen adress faild, error: ", err)
+		panic(err)
+	}
 
-	listenAddress := "0.0.0.0:8080"
-	//log.Printf("%v\n%v\n%v\n", *listenAddress, *rulePath, *promtoolPath)
-
+	listenAddress := serverConfig.ListenAddress
 	router := gin.Default()
-
 	v1 := router.Group("/v1")
 	{
 		v1.GET(queryRules, QueryRules)
@@ -39,8 +44,6 @@ func PromServer(){
 		v1.DELETE(deleteRule, DeleteRule)
 		v1.POST(createRule, CreateRules)
 	}
-
 	router.Run(listenAddress)
-
 }
 

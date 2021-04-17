@@ -29,6 +29,3 @@ type Rule struct {
 type apiFuncResult struct {
 	Data RuleGroups
 }
-
-
-

@@ -8,6 +8,7 @@ package parse_prometheus_rule
 import (
 	"encoding/json"
 	"github.com/feiwang137/athena/pkg/models"
+	"github.com/feiwang137/athena/pkg/utils"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
@@ -95,7 +96,12 @@ func GenPromRuleConfig() error {
 		PromRulesConfig.Groups = append(PromRulesConfig.Groups, ruleGroup)
 	}
 
-	err = CreateYamlFile(PromRulesConfig,"/Users/feiwang/prom-data/rules.yml")
+	serverConfig, err := utils.LoadServerConfig()
+	if err != nil{
+		panic(err)
+	}
+
+	err = CreateYamlFile(PromRulesConfig,serverConfig.RulesPath)
 
 	if err != nil {
 		log.Printf("save rule to yaml fail, error:%v \n", err)

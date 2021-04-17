@@ -6,6 +6,7 @@
 package server
 
 import (
+	"github.com/feiwang137/athena/pkg/utils"
 	"io/ioutil"
 	"net/http"
 	"log"
@@ -15,9 +16,13 @@ import (
 //func ReloadPrometheusServer(promServer string) error{
 func ReloadPrometheusServer() error{
 
+	serverConfig, err := utils.LoadServerConfig()
+	if err != nil{
+		panic(err)
+	}
+	promServer := serverConfig.PrometheusServer
 
-	//url := "http://" + promServer + "/-/reload"
-	url := "http://" + "0.0.0.0:9090" + "/-/reload"
+	url := "http://" + promServer + "/-/reload"
 	client := &http.Client{}
 	req ,err := http.NewRequest("POST",url,nil)
 	if err != nil {

@@ -10,6 +10,8 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
+	"os"
+
 )
 
 type ServerConfig struct {
@@ -37,27 +39,49 @@ func GenServerConfig(args ...string) error{
 	}
 
 	athenaConfigPath := args[5]
+	AthenaConfigPath = &athenaConfigPath
+
 	err = ioutil.WriteFile(athenaConfigPath, data, 0644)
 	if err != nil {
 		log.Printf("save rule to yaml fail, error:%v \n", err)
 		return err
 	}
 
-	log.Printf("Generate %v success.", athenaConfigPath)
+	log.Printf("Generate athena.yml success.\n")
 	return nil
 
 }
 
 // 解析配置文件
-var serverConfig *ServerConfig
-func LoadServerConfig() error{
+
+var AthenaConfigPath *string
+
+func LoadServerConfig() (*ServerConfig, error){
 	/*
 	1.读取配置文件内容
 	2.定义一个var，type是对应的Struct
 	3.yaml.Unmarshal([]byte(data), &m)
 	*/
+	var serverConfig *ServerConfig
+	//serverConfigPath := "athena.yml"
+	athenaConfigPath := *AthenaConfigPath
 
-	return nil
+	_, err :=  os.Stat(athenaConfigPath)
+	if err !=nil{
+		log.Printf("  %v : No such file or directory, please first athena init \n", athenaConfigPath)
+		return nil, err
+	}
+
+	data, err := ioutil.ReadFile(athenaConfigPath)
+	if err != nil{
+		log.Println(err)
+		return nil, err
+	}
+
+	yaml.Unmarshal(data, &serverConfig)
+	//log.Println(serverConfig)
+
+	return serverConfig, nil
 
 }
 

@@ -56,7 +56,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.athena.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "server config file (default is $HOME/.athena.yml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -71,7 +71,7 @@ func initConfig() {
 	} else {
 		// Find home directory.
 		home, err := homedir.Dir()
-		fmt.Println("home:",home)
+		//fmt.Println("home:",home)
 		cobra.CheckErr(err)
 
 		// Search config in home directory with name ".athena" (without extension).
